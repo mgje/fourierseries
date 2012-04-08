@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Sinus</title>
+
+    
+    <!-- Style -->
+    <link rel="stylesheet" href="js/TangleKit/TangleKit.css" type="text/css">
+
+    <!-- JS  Tangle-->
+    <script type="text/javascript" src="js/Tangle.js"></script>
+    <script type="text/javascript" src="js/TangleKit/mootools.js"></script>
+    <script type="text/javascript" src="js/TangleKit/sprintf.js"></script>
+    <script type="text/javascript" src="js/TangleKit/BVTouchable.js"></script>
+    <script type="text/javascript" src="js/TangleKit/TangleKit.js"></script>
+    <!-- JS  JQuery-->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+     <!-- JS  Highcharts-->
+    <script type="text/javascript" src="js/highcharts.src.js"></script>
+    <script type="text/javascript" src="js/modules/exporting.js"></script>
+    <script type="text/javascript" src="js/dark_blue_hj_theme.js"></script>
+
+<!--<script src="http://code.highcharts.com/highcharts.js"></script>-->
+<!--<script src="http://code.highcharts.com/modules/exporting.js"></script>-->
+
+
+<!-- SINUS Example -->
+<script type="text/javascript">
+
+$(function () {
+    var m_chart;
+    $(document).ready(function() {
+    
+    function gensindata(numpoints,xmin,xmax,amplitude,omega,phi) {
+    	// generate an array of data
+    	var data = [];
+        var l=numpoints;
+        for(var i=0; i<l; i++) {
+            x=xmin+i*1.0/l*(xmax-xmin);
+            y=amplitude*Math.sin(omega*x*Math.PI+phi);
+            data.push([x, y]);
+        }
+        return data;
+    }
+    
+    function genseries(){
+       var ser=[];
+       var l=5;
+       var w=[0.5,1,1.5,2.0,2.5,3.0,3.5,4,4.5,5];
+       for(var i=0; i<l; i++) {
+         var  d={};
+         d["name"]="f"+(i+1)+"(t)=Asin("+w[i]+"t+0)";
+         d["data"]=gensindata(200,0,4*Math.PI,2,w[i],0);
+         ser.push(d);
+       }
+       
+       
+       return ser;
+    
+    //   series: [{
+    //            name: ('A sin(wt+phi)'),
+    //            data: (gensindata(200,0,4*Math.PI,2,3,0))               
+    //        }]
+    
+    }
+    
+    
+    
+    m_chart = new Highcharts.Chart({
+        chart: {
+                renderTo: 'container',
+                type: 'line',
+                marginRight: 130,
+                marginBottom: 80
+            },
+       title: {
+                text: 'Sinus Funktionen',
+                x: -20 //center
+            },
+       subtitle: {
+                text: 'Reactive Example',
+                x: -20
+            },
+        xAxis: {
+                title: {
+                    text: 'x [au]'
+                },
+                minPadding: 0.01,
+                maxPadding: 0.02,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       yAxis: {
+                title: {
+                    text: 'y [au]'
+                },
+                 minPadding: 0.01,
+                maxPadding: 0.05,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       tooltip: {
+                formatter: function() {
+                        return '<b>'+ this.series.name +'</b><br/>'+
+                        this.x +': '+ this.y ;
+                }
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'top',
+                x: -10,
+                y: 30,
+                borderWidth: 0
+            },
+        series: (genseries())
+
+        });
+        
+        
+        //Reactive Elements
+        var element = document.getElementById("sin");
+
+        var tangle = new Tangle(element, {
+           initialize: function () {
+                this.a1 = 1;
+                this.o1 = 0.5;
+                this.p1 = 0;
+                
+                this.a2 = 0.8;
+                this.o2 = 1;
+                this.p2 = 0;
+                
+                this.a3 = 1.2;
+                this.o3 = 1.5;
+                this.p3 = 0;
+                
+                this.a4 = 1.4;
+                this.o4 = 2;
+                this.p4 = 0;
+                
+                this.a5 = 1.3;
+                this.o5 = 2.5;
+                this.p5 = 0;
+                
+                this.t1 = 2;
+                this.t0 = 0;
+                this.punkte = 200;
+                
+            },
+            update: function () {
+                this.laenge = this.wellen * this.periode;
+                m_chart.series[0].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a1,this.o1,this.p1));
+                m_chart.series[0].name='y(t)= '+this.a1+'*sin('+this.o1+'t+'+this.p1+')';
+                 m_chart.series[1].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a2,this.o2,this.p2));
+                m_chart.series[1].name='y(t)= '+this.a2+'*sin('+this.o2+'t+'+this.p2+')';
+                 m_chart.series[2].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a3,this.o3,this.p3));
+                m_chart.series[2].name='y(t)= '+this.a3+'*sin('+this.o3+'t+'+this.p3+')';
+                 m_chart.series[3].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a4,this.o4,this.p4));
+                m_chart.series[3].name='y(t)= '+this.a4+'*sin('+this.o4+'t+'+this.p4+')';
+                 m_chart.series[4].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a5,this.o5,this.p5));
+                m_chart.series[4].name='y(t)= '+this.a5+'*sin('+this.o5+'t+'+this.p5+')';
+                m_chart.redraw();  
+            }
+        });     
+    });
+});
+</script>
+    
+</head>
+
+<body>
+
+    <p>Verschiedene Sinusfunktionen</p>
+
+    <p id="sin">
+    Verschiedene Sinusfunktionen der Form A sin(&omega;t+&phi;) werden in der Figur unten dargestellt.
+    Der Bereich t0=<span data-var="t0" class="TKAdjustableNumber" data-step="0.5" data-min="-4" data-max="0"> </span>&pi; 
+    bis t1=<span data-var="t1" class="TKAdjustableNumber" data-step="0.5" data-min="0.5" data-max="4"> </span> &pi;
+    wird mit 
+    <span data-var="punkte" class="TKAdjustableNumber" data-step="25" data-min="20" data-max="400"> </span> Punkten 
+    berechnet. 
+    <br><br>
+    f1(t)=<span data-var="a1" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o1" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p1" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    <br>
+    f2(t)=<span data-var="a2" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o2" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p2" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    
+    <br>
+    f3(t)=<span data-var="a3" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o3" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p3" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    
+    <br>
+    f4(t)=<span data-var="a4" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o4" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p4" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    
+    <br>
+    f5(t)=<span data-var="a5" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o5" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p5" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    
+    </p>
+     
+    <div id="container" style="min-width: 400px; height: 600px; margin: 0 auto"></div>
+    
+
+</body>
+</html>
