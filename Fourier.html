@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Sinus</title>
+    <title>Fourier</title>
 
     
     <!-- Style -->
@@ -38,7 +38,7 @@ $(function () {
         var l=numpoints;
         for(var i=0; i<l; i++) {
             x=xmin+i*1.0/l*(xmax-xmin);
-            y=amplitude*Math.sin(omega*x*Math.PI+phi);
+            y=amplitude*Math.sin(omega*x+phi);
             data.push([x, y]);
         }
         return data;
@@ -46,15 +46,22 @@ $(function () {
     
     function genseries(){
        var ser=[];
-       var l=5;
-       var w=[0.5,1,1.5,2.0,2.5,3.0,3.5,4,4.5,5];
+       var l=3;
+       var w=[1,3,5,2.0,2.5,3.0,3.5,4,4.5,5];
+       var  d={};
+         d["name"]="Treppenfunktion";
+         d["data"]=gensindata(125,0,4*Math.PI,2,w[0],0);
+         ser.push(d);
        for(var i=0; i<l; i++) {
          var  d={};
          d["name"]="f"+(i+1)+"(t)=Asin("+w[i]+"t+0)";
-         d["data"]=gensindata(200,0,4*Math.PI,2,w[i],0);
+         d["data"]=gensindata(125,0,4*Math.PI,2,w[i],0);
          ser.push(d);
        }
-       
+       var  d={};
+       d["name"]="f1(t)+f2(t)+f3(t)";
+       d["data"]=gensindata(125,0,2*Math.PI,2,w[i],0);
+       ser.push(d);
        
        return ser;
     
@@ -65,6 +72,55 @@ $(function () {
     
     }
     
+    function sumdata(v){
+       
+       for (var k=1; k<v.length; k++) {
+          for (var m=0; m<v[0].length; m++) {
+             v[0][m][1] += v[k][m][1]
+          }
+       }
+       return v[0]
+    
+    }
+    
+    function stufe(x){
+    var fact = 1.0
+    if (x<0){
+      fact = -1.0
+      x = x*fact;
+    }
+    z = x/Math.PI/2;
+    x_ = z-Math.floor(z);
+    v =x_*Math.PI*2*fact;
+    if (v > -Math.PI && v<=0){
+      return -1.0
+    }
+    if (v > -2*Math.PI && v<=-Math.PI){
+      return 1.0
+    }
+    if (v > 0 && v<=Math.PI){
+      return 1.0
+    }
+    if (v > Math.PI && v<=2*Math.PI){
+      return -1.0
+    }
+    return 0
+    }
+    var za =0;
+    
+    
+    function genstufe(numpoints,xmin,xmax) {
+    	// generate an array of data
+    	var data = [];
+        var l=numpoints;
+    
+        for(var i=0; i<l; i++) {
+            x=xmin+i*1.0/l*(xmax-xmin);
+            y=stufe(x);
+            data.push([x, y]);
+        }
+        return data;
+    }
     
     
     m_chart = new Highcharts.Chart({
@@ -75,7 +131,7 @@ $(function () {
                 marginBottom: 80
             },
        title: {
-                text: 'Sinus Funktionen',
+                text: 'Fourier Näherung der Stufenfunktion mit 3 Summanden',
                 x: -20 //center
             },
        subtitle: {
@@ -132,43 +188,44 @@ $(function () {
 
         var tangle = new Tangle(element, {
            initialize: function () {
-                this.a1 = 1;
-                this.o1 = 0.5;
+                this.a1 = 4/Math.PI;
+                this.o1 = 1;
                 this.p1 = 0;
                 
-                this.a2 = 0.8;
-                this.o2 = 1;
+                this.a2 = 4/Math.PI/3;
+                this.o2 = 3;
                 this.p2 = 0;
                 
-                this.a3 = 1.2;
-                this.o3 = 1.5;
+                this.a3 = 4/Math.PI/5;
+                this.o3 = 5;
                 this.p3 = 0;
                 
-                this.a4 = 1.4;
-                this.o4 = 2;
-                this.p4 = 0;
-                
-                this.a5 = 1.3;
-                this.o5 = 2.5;
-                this.p5 = 0;
+               
                 
                 this.t1 = 2;
                 this.t0 = 0;
-                this.punkte = 200;
+                this.punkte = 125;
                 
             },
             update: function () {
-                this.laenge = this.wellen * this.periode;
-                m_chart.series[0].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a1,this.o1,this.p1));
-                m_chart.series[0].name='y(t)= '+this.a1+'*sin('+this.o1+'t+'+this.p1+')';
-                 m_chart.series[1].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a2,this.o2,this.p2));
-                m_chart.series[1].name='y(t)= '+this.a2+'*sin('+this.o2+'t+'+this.p2+')';
-                 m_chart.series[2].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a3,this.o3,this.p3));
-                m_chart.series[2].name='y(t)= '+this.a3+'*sin('+this.o3+'t+'+this.p3+')';
-                 m_chart.series[3].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a4,this.o4,this.p4));
-                m_chart.series[3].name='y(t)= '+this.a4+'*sin('+this.o4+'t+'+this.p4+')';
-                 m_chart.series[4].setData(gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a5,this.o5,this.p5));
-                m_chart.series[4].name='y(t)= '+this.a5+'*sin('+this.o5+'t+'+this.p5+')';
+                var d0=genstufe(this.punkte,this.t0*Math.PI,this.t1*Math.PI);
+                var d1=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a1,this.o1,this.p1);
+                var d2=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a2,this.o2,this.p2);
+                var d3=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a3,this.o3,this.p3);
+                
+                
+                m_chart.series[0].setData(d0);
+                m_chart.series[0].name='Treppenfunktion';
+                m_chart.series[1].setData(d1);
+                m_chart.series[1].name='f1(t)= '+this.a1+'*sin('+this.o1+'t+'+this.p1+')';
+                 m_chart.series[2].setData(d2);
+                m_chart.series[2].name='f2(t)= '+this.a2+'*sin('+this.o2+'t+'+this.p2+')';
+                 m_chart.series[3].setData(d3);
+                m_chart.series[3].name='f3(t)= '+this.a3+'*sin('+this.o3+'t+'+this.p3+')';
+                
+                
+                 m_chart.series[4].setData(sumdata([d1,d2,d3]));
+                m_chart.series[4].name='f1+f2+f3';
                 m_chart.redraw();  
             }
         });     
@@ -180,10 +237,10 @@ $(function () {
 
 <body>
 
-    <p>Verschiedene Sinusfunktionen</p>
+    <p>Fouriernäherung mit drei Summanden</p>
 
     <p id="sin">
-    Verschiedene Sinusfunktionen der Form A sin(&omega;t+&phi;) werden in der Figur unten dargestellt.
+    Verschiedene Sinusfunktionen der Form A sin(&omega;t+&phi;) werden summiert.
     Der Bereich t0=<span data-var="t0" class="TKAdjustableNumber" data-step="0.5" data-min="-4" data-max="0"> </span>&pi; 
     bis t1=<span data-var="t1" class="TKAdjustableNumber" data-step="0.5" data-min="0.5" data-max="4"> </span> &pi;
     wird mit 
@@ -206,17 +263,7 @@ $(function () {
     t+
     <span data-var="p3" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
     
-    <br>
-    f4(t)=<span data-var="a4" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
-    *sin(<span data-var="o4" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
-    t+
-    <span data-var="p4" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
-    
-    <br>
-    f5(t)=<span data-var="a5" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
-    *sin(<span data-var="o5" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
-    t+
-    <span data-var="p5" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+   
     
     </p>
      
