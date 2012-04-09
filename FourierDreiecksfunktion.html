@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Fouriernäherung der Dreiecksfunktion</title>
+
+    
+    <!-- Style -->
+    <link rel="stylesheet" href="js/TangleKit/TangleKit.css" type="text/css">
+
+    <!-- JS  Tangle-->
+    <script type="text/javascript" src="js/Tangle.js"></script>
+    <script type="text/javascript" src="js/TangleKit/mootools.js"></script>
+    <script type="text/javascript" src="js/TangleKit/sprintf.js"></script>
+    <script type="text/javascript" src="js/TangleKit/BVTouchable.js"></script>
+    <script type="text/javascript" src="js/TangleKit/TangleKit.js"></script>
+    <!-- JS  JQuery-->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+     <!-- JS  Highcharts-->
+    <script type="text/javascript" src="js/highcharts.js"></script>
+    <script type="text/javascript" src="js/modules/exporting.js"></script>
+    <script type="text/javascript" src="js/dark_blue_hj_theme.js"></script>
+
+<!--<script src="http://code.highcharts.com/highcharts.js"></script>-->
+<!--<script src="http://code.highcharts.com/modules/exporting.js"></script>-->
+
+
+<!-- SINUS Example -->
+<script type="text/javascript">
+
+$(function () {
+    var m_chart;
+    var numsum=4;
+    
+    $(document).ready(function() {
+    
+    function gencosdata(numpoints,xmin,xmax,amplitude,omega,phi) {
+    	// generate an array of data
+    	var data = [];
+        var l=numpoints;
+        for(var i=0; i<l; i++) {
+            x=xmin+i*1.0/l*(xmax-xmin);
+            y=amplitude*Math.cos(omega*x+phi);
+            data.push([x, y]);
+        }
+        return data;
+    }
+    
+    function genseries(){
+       var ser=[];
+       var  d={};
+       d["name"]="Treppenfunktion";
+       d["data"]=gencosdata(125,0,4*Math.PI,2,1,0);
+       ser.push(d);
+       
+       var  d={};
+       d["name"]="f1(t)+f2(t)+f3(t)";
+       d["data"]=gencosdata(125,0,2*Math.PI,2,1,0);
+       ser.push(d);
+       
+       return ser;
+    
+    //   series: [{
+    //            name: ('A sin(wt+phi)'),
+    //            data: (gensindata(200,0,4*Math.PI,2,3,0))               
+    //        }]
+    
+    }
+    
+    function sumdata(v){
+       
+       for (var k=1; k<v.length; k++) {
+          for (var m=0; m<v[0].length; m++) {
+             v[0][m][1] += v[k][m][1]
+          }
+       }
+       return v[0]
+    
+    }
+    
+    function dreieck(x){
+      z = x/Math.PI/2;
+      x_ = z-Math.floor(z);
+      return Math.abs(x_-0.5)*2-0.5
+    }
+    
+    
+    var za =0;
+    
+    
+    function genstufe(numpoints,xmin,xmax) {
+    	// generate an array of data
+    	var data = [];
+        var l=numpoints;
+    
+        for(var i=0; i<l; i++) {
+            x=xmin+i*1.0/l*(xmax-xmin);
+            y=dreieck(x);
+            data.push([x, y]);
+        }
+        return data;
+    }
+    
+    
+    m_chart = new Highcharts.Chart({
+        chart: {
+                renderTo: 'container',
+                type: 'line',
+                marginRight: 150,
+                marginBottom: 80
+            },
+       title: {
+                text: 'Fourier Approximation',
+                x: -20 //center
+            },
+       subtitle: {
+                text: 'Reactive Example',
+                x: -20
+            },
+        xAxis: {
+                title: {
+                    text: 'x [au]'
+                },
+                minPadding: 0.01,
+                maxPadding: 0.02,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       yAxis: {
+                title: {
+                    text: 'y [au]'
+                },
+                 minPadding: 0.01,
+                maxPadding: 0.05,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       tooltip: {
+                formatter: function() {
+                        return '<b>'+ this.series.name +'</b><br/>'+
+                        this.x +': '+ this.y ;
+                }
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'top',
+                x: -10,
+                y: 30,
+                borderWidth: 0
+            },
+        series: (genseries())
+
+        });
+        
+        
+        //Reactive Elements
+        var element = document.getElementById("sin");
+
+        var tangle = new Tangle(element, {
+           initialize: function () {
+                
+                this.t1 = 2;
+                this.t0 = 0;
+                this.punkte = 125;
+                
+                this.oldns =4;
+                this.ns = 4;
+                
+            },
+            update: function () {
+                
+                var d0=genstufe(this.punkte,this.t0*Math.PI,this.t1*Math.PI);
+                m_chart.series[0].setData(d0);
+                m_chart.series[0].name='Treppenfunktion';
+                
+                var ug=1
+                var dv=[];
+                for(var i=1; i<this.ns+1; i++) {
+                   var d=gencosdata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,4/Math.PI/Math.PI/ug/ug,ug,0);
+                   dv.push(d);
+                   ug +=2;
+                }
+                
+               
+                
+                m_chart.series[1].setData(sumdata(dv));
+                m_chart.series[1].name='f1(t)+f2(t)+...';
+                
+                m_chart.redraw();  
+                this.oldns=this.ns;
+            }
+        });     
+    });
+});
+</script>
+    
+</head>
+
+<body>
+
+    <p>Fouriernäherung der Dreiecksfunktion</p>
+    
+    <p id="sin">
+    Die Dreiecksfuntkion kann wie folgt definiert werden:<br>
+    f(t) = 1/2 + t/T für −T/2 &le; t &le; 0 und f(t) = 1/2 − t/T für 0 &le; t &le; T/2<br>
+    Der Bereich t0=<span data-var="t0" class="TKAdjustableNumber" data-step="0.5" data-min="-4" data-max="0"> </span>&pi; 
+    bis t1=<span data-var="t1" class="TKAdjustableNumber" data-step="0.5" data-min="0.5" data-max="4"> </span> &pi;
+    wird mit 
+    <span data-var="punkte" class="TKAdjustableNumber" data-step="25" data-min="20" data-max="400"> </span> Punkten 
+    berechnet. 
+    <br><br>
+    Eine Näherung der Treppenfunktion kann als Summe mit <span data-var="ns" class="TKAdjustableNumber"  data-min="1" data-max="100"> </span> 
+    Summanden approximiert werden. Weitere Informationen zu Fourierreihen finden Sie unter 
+    <a href="http://docs.sfz-bw.de/phag/skripte/fourier.pdf">fourier.pdf</a>
+    
+    </p>
+     
+    <div id="container" style="min-width: 400px; height: 600px; margin: 0 auto"></div>
+    
+
+</body>
+</html>
