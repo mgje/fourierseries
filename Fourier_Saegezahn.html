@@ -88,10 +88,7 @@ $(function () {
     }
     
     
-    var za =0;
-    
-    
-    function genstufe(numpoints,xmin,xmax) {
+    function gensaege(numpoints,xmin,xmax) {
     	// generate an array of data
     	var data = [];
         var l=numpoints;
@@ -102,6 +99,22 @@ $(function () {
             data.push([x, y]);
         }
         return data;
+    }
+    
+    function gensumoutput(n){
+       s="f_i(t) = 2/Pi ("
+       ug=1
+       for (var i=0; i<n; i++) {
+         term="";
+         if(i!=0){
+           term+="+";
+         }
+         term +="1/"+ug+"sin("+ug+"t)";
+         s+=term;
+         ug +=1;
+       }
+       s+=")";
+       return s;
     }
     
     
@@ -181,9 +194,9 @@ $(function () {
             },
             update: function () {
                 
-                var d0=genstufe(this.punkte,this.t0*Math.PI,this.t1*Math.PI);
+                var d0=gensaege(this.punkte,this.t0*Math.PI,this.t1*Math.PI);
                 m_chart.series[0].setData(d0);
-                m_chart.series[0].name='Treppenfunktion';
+                m_chart.series[0].name='Sägezahn';
                 
                 var ug=1
                 var dv=[];
@@ -199,6 +212,22 @@ $(function () {
                 m_chart.series[1].name='f1(t)+f2(t)+...';
                 
                 m_chart.redraw();  
+                // Summation
+                $('#summe').empty()
+                var list_sum =gensumoutput(this.ns).split("+");
+                out = '';
+                for(var i=0; i<list_sum.length; i++) {
+                    if (i>0){
+                      out += "+";
+                    }
+                    out += list_sum[i];
+                    if (((i+1)%8)==0){
+                      $('#summe').append(""+out+"<br>");
+                      out="";
+                    }
+                }
+                $('#summe').append(""+out+"<br>");
+                
                 this.oldns=this.ns;
             }
         });     
@@ -220,8 +249,13 @@ $(function () {
     <span data-var="punkte" class="TKAdjustableNumber" data-step="25" data-min="20" data-max="400"> </span> Punkten 
     berechnet. 
     <br><br>
-    Eine Näherung der Treppenfunktion kann als Summe mit <span data-var="ns" class="TKAdjustableNumber"  data-min="1" data-max="100"> </span> 
-    Summanden approximiert werden. Weitere Informationen zu Fourierreihen finden Sie unter 
+    Eine Näherung der Sägezahnfunktion kann als Summe mit <b><span data-var="ns" class="TKAdjustableNumber"  data-min="1" data-max="100"> </span> 
+    Summanden</b> approximiert werden. <br>
+    <b> 
+    &sum; <span id="summe"></span>
+    </b>
+    <br>
+    Weitere Informationen zu Fourierreihen finden Sie unter 
     <a href="http://docs.sfz-bw.de/phag/skripte/fourier.pdf">fourier.pdf</a>
     
     </p>

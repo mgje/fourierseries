@@ -68,46 +68,41 @@ $(function () {
        
        return ser;
     
-    //   series: [{
-    //            name: ('A sin(wt+phi)'),
-    //            data: (gensindata(200,0,4*Math.PI,2,3,0))               
-    //        }]
-    
     }
     
     function sumdata(v){
-       
+       tmp=v[0].clone()
        for (var k=1; k<v.length; k++) {
-          for (var m=0; m<v[0].length; m++) {
-             v[0][m][1] += v[k][m][1]
+          for (var m=0; m<tmp.length; m++) {
+             tmp[m][1] += v[k][m][1]
           }
        }
-       return v[0]
+       return tmp
     
     }
     
     function stufe(x){
-    var fact = 1.0
-    if (x<0){
-      fact = -1.0
-      x = x*fact;
-    }
-    z = x/Math.PI/2;
-    x_ = z-Math.floor(z);
-    v =x_*Math.PI*2*fact;
-    if (v > -Math.PI && v<=0){
-      return -1.0
-    }
-    if (v > -2*Math.PI && v<=-Math.PI){
-      return 1.0
-    }
-    if (v > 0 && v<=Math.PI){
-      return 1.0
-    }
-    if (v > Math.PI && v<=2*Math.PI){
-      return -1.0
-    }
-    return 0
+      var fact = 1.0
+      if (x<0){
+        fact = -1.0
+        x = x*fact;
+      }
+      z = x/Math.PI/2;
+      x_ = z-Math.floor(z);
+      v =x_*Math.PI*2*fact;
+      if (v > -Math.PI && v<=0){
+        return -1.0
+      }
+      if (v > -2*Math.PI && v<=-Math.PI){
+        return 1.0
+      }
+      if (v > 0 && v<=Math.PI){
+        return 1.0
+      }
+      if (v > Math.PI && v<=2*Math.PI){
+        return -1.0
+      }
+      return 0
     }
     var za =0;
     
@@ -193,59 +188,54 @@ $(function () {
            initialize: function () {
                 
                 this.t1 = 2;
-                this.t0 = 0;
-                this.punkte = 125;
+                this.t0 = -2;
+                this.punkte = 200;
                 
                 this.oldns =4;
                 this.ns = 4;
                 
-            },
-            update: function () {
-                //var d0=genstufe(this.punkte,this.t0*Math.PI,this.t1*Math.PI);
-                //var d1=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a1,this.o1,this.p1);
-                //var d2=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a2,this.o2,this.p2);
-                //var d3=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a3,this.o3,this.p3);
-                
                 var d0=genstufe(this.punkte,this.t0*Math.PI,this.t1*Math.PI);
                 m_chart.series[0].setData(d0);
-                m_chart.series[0].name='Treppenfunktion';
-                
-                //remove sumdata
-                
-                m_chart.series[ m_chart.series.length-1].remove();
-                
+                m_chart.series[0].name='Stufenfunktion';
                 
                 var ug=1;
-                var dv=[];
+                this.dv=[];
                 for(var i=1; i<this.ns+1; i++) {
                    var d=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,4/Math.PI/ug,ug,0);
-                   dv.push(d);
-                   if(i<this.oldns+1){
-                     m_chart.series[i].setData(d);
-                     m_chart.series[i].name='f1(t)= '+4/Math.PI/ug+'*sin('+ug+'t)';
-                   }
+                   this.dv.push(d);
+                   m_chart.series[i].setData(d);
+                   m_chart.series[i].name='f1(t)= '+4/Math.PI/ug+'*sin('+ug+'t)';
                    ug +=2;
                 }
+                
+            },
+            update: function () {
+               
+                m_chart.series[ m_chart.series.length-1].remove();
                 
                 if (this.oldns > this.ns){
                    for(var i=0; i<this.oldns-this.ns; i++) {
                       m_chart.series[this.oldns-i].remove();
+                      this.dv.pop();
                    }
                 }
                 
                  if (this.oldns < this.ns){
                    for(var i=0; i<this.ns-this.oldns; i++) {
+                      var ug=(2*(this.oldns+i)+1);
+                      var d=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,4/Math.PI/ug,ug,0);
+                      this.dv.push(d);
                       m_chart.addSeries({name: ('f'+(this.oldns+i+1)+'(t)=Asin('+(2*(this.oldns+i)+1)+'t)'),
-                      data: (dv[this.oldns+i])
+                      data: (d)
                       });
                    }
                 }
                 
                 m_chart.addSeries({name: 'f1+f2+f3+..',
-                      data: (sumdata(dv))
+                      data: (sumdata(this.dv))
                       });
                 
-                m_chart.redraw();  
+                //m_chart.redraw();  
                 this.oldns=this.ns;
             }
         });     
@@ -257,18 +247,22 @@ $(function () {
 
 <body>
 
-    <p>Fouriernäherung</p>
+    <p>Fouriernäherung einer Stufenfunktion</p>
 
     <p id="sin">
-    Verschiedene Sinusfunktionen der Form A sin(&omega;t+&phi;) werden summiert.
-    Der Bereich t0=<span data-var="t0" class="TKAdjustableNumber" data-step="0.5" data-min="-4" data-max="0"> </span>&pi; 
-    bis t1=<span data-var="t1" class="TKAdjustableNumber" data-step="0.5" data-min="0.5" data-max="4"> </span> &pi;
-    wird mit 
-    <span data-var="punkte" class="TKAdjustableNumber" data-step="25" data-min="20" data-max="400"> </span> Punkten 
+    Verschiedene Sinusfunktionen der Form A sin(&omega;t+&phi;) werden so summiert, dass
+    die Summe der einzelnen Funktionen die Stufenfunktion möglichst genau approximiert.
+    <br>Eine Stufenfunktion kann wie folgt definiert werden:<br>
+    f(t) = −1 in −T/2 &le; t &le; 0 und f(t) = +1 in 0 &le; t &le; T/2.
+    <br>Der Bereich t0= -2&pi; 
+    bis t1= 2&pi;
+    wird mit 200 Punkten 
     berechnet. 
     <br><br>
-    Eine Näherung der Treppenfunktion kann als Summe mit <span data-var="ns" class="TKAdjustableNumber"  data-min="1" data-max="18"> </span> 
-    Summanden approximiert werden. 
+    Eine Näherung der Stufenfunktion kann als Summe mit <span data-var="ns" class="TKAdjustableNumber"  data-min="1" data-max="18"> </span> 
+    Summanden approximiert werden. Weitere Informationen zu Fourierreihen finden Sie unter 
+    <a href="http://docs.sfz-bw.de/phag/skripte/fourier.pdf">fourier.pdf</a>
+    
     
     </p>
      
