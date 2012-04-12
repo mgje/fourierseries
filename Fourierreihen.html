@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Fouriernäherung der Dreiecksfunktion</title>
+    
+    <!-- Style -->
+    <link rel="stylesheet" href="js/TangleKit/TangleKit.css" type="text/css">
+
+    
+    <!-- MathJax -->
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+   </script>
+
+    <!-- JS  Tangle-->
+    <script  src="js/Tangle.js"></script>
+    <script  src="js/TangleKit/mootools.js"></script>
+    <script  src="js/TangleKit/sprintf.js"></script>
+    <script  src="js/TangleKit/BVTouchable.js"></script>
+    <script  src="js/TangleKit/TangleKit.js"></script>
+    <!-- JS  JQuery-->
+    <script  src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+     <!-- JS  Highcharts-->
+    <script  src="js/highcharts.js"></script>
+    <script  src="js/modules/exporting.js"></script>
+    <script  src="js/dark_blue_hj_theme.js"></script>
+    
+    
+<script>
+  //  Math Displax
+  //  Use a closure to hide the local variables from the
+  //  global namespace
+  //
+  (function () {
+    var QUEUE = MathJax.Hub.queue;  // shorthand for the queue
+    var math = null, box = null;    // the element jax for the math output, and the box it's in
+
+    //
+    //  Hide and show the box (so it doesn't flicker as much)
+    //
+    var HIDEBOX = function () {box.style.visibility = "hidden"}
+    var SHOWBOX = function () {box.style.visibility = "visible"}
+
+    //
+    //  Get the element jax when MathJax has produced it.
+    //
+    QUEUE.Push(function () {
+      math = MathJax.Hub.getAllJax("MathOutput")[0];
+      box = document.getElementById("box");
+      SHOWBOX(); // box is initially hidden so the braces don't show
+    });
+
+    //
+    //  The onchange event handler that typesets the math entered
+    //  by the user.  Hide the box, then typeset, then show it again
+    //  so we don't see a flash as the math is cleared and replaced.
+    //
+    window.UpdateMath = function (TeX) {
+      QUEUE.Push(HIDEBOX,["Text",math,"\\displaystyle{"+TeX+"}"],SHOWBOX);
+    }
+  })();
+</script>    
+
+<!-- Fourier Example -->
+<script >
+
+$(function () {
+    var m_chart;
+       
+    $(document).ready(function() { 
+    
+    m_chart = new Highcharts.Chart({
+        chart: {
+                renderTo: 'container',
+                type: 'line',
+                marginRight: 150,
+                marginBottom: 80
+            },
+       title: {
+                text: 'Fourier Approximation',
+                x: -20 //center
+            },
+       subtitle: {
+                text: 'Reactive Example',
+                x: -20
+            },
+        xAxis: {
+                title: {
+                    text: 'x [au]'
+                },
+                minPadding: 0.01,
+                maxPadding: 0.02,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       yAxis: {
+                title: {
+                    text: 'y [au]'
+                },
+                 minPadding: 0.01,
+                maxPadding: 0.05,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       tooltip: {
+                formatter: function() {
+                        return '<b>'+ this.series.name +'</b><br/>'+
+                        this.x +': '+ this.y ;
+                }
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'top',
+                x: -10,
+                y: 30,
+                borderWidth: 0
+            },
+        series: (genseries())
+
+        });
+        
+        // Reactive Elements
+        // help functions
+        function stufe(x){
+    		var fact = 1.0
+    		if (x<0){
+      			fact = -1.0
+      			x = x*fact;
+    		}
+    		z = x/Math.PI/2;
+    		x_ = z-Math.floor(z);
+    		v =x_*Math.PI*2*fact;
+    		if (v > -Math.PI && v<=0){
+      			return -1.0
+    		}
+    		if (v > -2*Math.PI && v<=-Math.PI){
+      			return 1.0
+    		}
+    		if (v > 0 && v<=Math.PI){
+      			return 1.0
+    		}
+    		if (v > Math.PI && v<=2*Math.PI){
+      			return -1.0
+    		}
+    		return 0
+    	}
+
+    	function genstufe(numpoints,xmin,xmax) {
+    	// generate an array of data
+    		var data = [];
+        	var l=numpoints;
+    
+        	for(var i=0; i<l; i++) {
+            	x=xmin+i*1.0/l*(xmax-xmin);
+            	y=stufe(x);
+            	data.push([x, y]);
+        	}
+        	return data;
+    	}
+        
+        function saege(x){
+      		var fact = 1.0
+      		z = x/Math.PI/2;
+      		x_ = z-Math.floor(z);
+      		v =-1*x_*2*fact+1;
+      		return v
+    	}
+    
+    
+    	function gensaege(numpoints,xmin,xmax) {
+    	// generate an array of data
+    		var data = [];
+        	var l=numpoints;
+    
+        	for(var i=0; i<l; i++) {
+            	x=xmin+i*1.0/l*(xmax-xmin);
+            	y=saege(x);
+            	data.push([x, y]);
+        	}
+        	return data;
+    	}
+        
+        
+        
+    	function dreieck(x){
+      		var z = x/Math.PI/2;
+      		var x_ = z-Math.floor(z);
+      		return Math.abs(x_-0.5)*2-0.5
+    	}
+    
+    	function gendreiecksfunktion(numpoints,xmin,xmax) {
+    		// generate an array of data
+    		var data = [];
+        	var l=numpoints,z=0,y=0;
+    
+        	for(var i=0; i<l; i++) {
+            	x=xmin+i*1.0/l*(xmax-xmin);
+            	y=dreieck(x);
+            	data.push([x, y]);
+        	}
+        	return data;
+    	}
+        
+        function gencosdata(numpoints,xmin,xmax,amplitude,omega,phi) {
+    	// generate an array of data
+    		var data = [];
+        	var l=numpoints,x=0,y=0;
+        	for(var i=0; i<l; i++) {
+           		 x=xmin+i*1.0/l*(xmax-xmin);
+            	 y=amplitude*Math.cos(omega*x+phi);
+            	 data.push([x, y]);
+        	}
+        	return data;
+   	 	}
+   	 	
+   	 	function gensindata(numpoints,xmin,xmax,amplitude,omega,phi) {
+    	// generate an array of data
+    		var data = [];
+        	var l=numpoints;
+        	for(var i=0; i<l; i++) {
+            	x=xmin+i*1.0/l*(xmax-xmin);
+            	y=amplitude*Math.sin(omega*x+phi);
+            	data.push([x, y]);
+        	}
+        	return data;
+        }
+    
+    	function gensumoutput(n){
+       		var s="f_i(t) = 4/(Pi^2) ("
+       		var ug=1, term="";
+       		for (var i=0; i<n; i++) {
+         		term="";
+         		if(i!=0){
+           			term+="+";
+         		}
+         		term +="1/"+ug*ug+"cos("+ug+"t)";
+         		s+=term;
+         		ug +=2;
+       		}
+       		s+=")";
+       		return s;
+    	}
+        
+        function genseries(){
+       		var ser=[];
+       		var  d={};
+       		d["name"]="Funktion";
+       		d["data"]=[];
+       		ser.push(d);
+       
+       		var  d={};
+       		d["name"]="Approximation";
+       		d["data"]=[];
+       		ser.push(d);
+       
+       		return ser;
+    	}
+    
+    	function sumdata(v){
+       		for (var k=1; k<v.length; k++) {
+          		for (var m=0; m<v[0].length; m++) {
+             		v[0][m][1] += v[k][m][1]
+          		}
+       		}
+       		return v[0]
+    	}
+    	
+    	function genfunktion(fn){
+    		var d0=[];
+    	    if(tangle!=null){
+    		  if (fn=="Stufenfunktion"){
+    		      d0=genstufe(tangle.getValue("punkte"),tangle.getValue("t0")*Math.PI,tangle.getValue("t1")*Math.PI);
+    		  }
+    		  if (fn=="Sägezahnfunktion"){
+    		      d0=gensaege(tangle.getValue("punkte"),tangle.getValue("t0")*Math.PI,tangle.getValue("t1")*Math.PI);
+    		  }
+    		  if (fn=="Dreiecksfunktion"){
+    		      d0=gendreiecksfunktion(tangle.getValue("punkte"),tangle.getValue("t0")*Math.PI,tangle.getValue("t1")*Math.PI);
+    		  }
+    		}
+    		
+    		return d0;
+    	}
+    	
+    	
+    	function gensumdata(fn){
+            var dv=[];
+            if(tangle!=null){
+                var lat_sum='=';
+            	if (fn=="Dreiecksfunktion"){
+              		var ug=1; 
+              		var ug2=0;
+              		var ns=tangle.getValue("ns");
+              		lat_sum += '\\frac{4}{\\pi^{2}} (';
+            		for(var i=1; i<ns+1; i++) {
+                		var d=gencosdata(tangle.getValue("punkte"),tangle.getValue("t0")*Math.PI,tangle.getValue("t1")*Math.PI,4/Math.PI/Math.PI/ug/ug,ug,0);
+                		dv.push(d);
+                		ug2=ug*ug;
+                		if (i>1){
+                		   lat_sum += '+';
+                		}
+                		lat_sum += '\\frac{1}{'+ug2+'} \\cos('+ug+'t) '
+                		ug +=2;
+                	}
+                	lat_sum += ')'
+                	UpdateMath('f(t)=\\frac{2}{\\pi^{2}} \\sum_{i=0}^{'+ns+'}  \\frac{1}{(2i+1)^2}\\cos((2i+1) t) '+lat_sum);
+                }
+                if (fn=="Sägezahnfunktion"){
+              		var ug=1
+              		var ns=tangle.getValue("ns");
+              		lat_sum += '\\frac{2}{\\pi} ('
+            		for(var i=1; i<ns+1; i++) {
+                		var d=gensindata(tangle.getValue("punkte"),tangle.getValue("t0")*Math.PI,tangle.getValue("t1")*Math.PI,2/Math.PI/ug,ug,0);
+                		dv.push(d);
+                		if (i>1){
+                		   lat_sum += '+';
+                		}
+                		lat_sum += '\\frac{1}{'+ug+'} \\sin('+ug+'t) '
+                		ug +=1;
+                	}
+                	lat_sum += ')'
+                    UpdateMath('f(t)=\\frac{2}{\\pi} \\sum_{i=1}^{'+ns+'}  \\frac{1}{i}\\sin(i t) '+lat_sum);
+                }
+                if (fn=="Stufenfunktion"){
+              		var ug=1
+              		var ns=tangle.getValue("ns");
+              		lat_sum += '\\frac{4}{\\pi} ('
+            		for(var i=1; i<ns+1; i++) {
+                		var d=gensindata(tangle.getValue("punkte"),tangle.getValue("t0")*Math.PI,tangle.getValue("t1")*Math.PI,4/Math.PI/ug,ug,0);
+                		dv.push(d);
+                		if (i>1){
+                		   lat_sum += '+';
+                		}
+                		lat_sum += '\\frac{1}{'+ug+'} \\sin('+ug+'t) '
+                		ug +=2;
+                	}
+                	lat_sum += ')'
+                	UpdateMath('f(t)=\\frac{4}{\\pi} \\sum_{i=0}^{'+ns+'}  \\frac{1}{2 i+1}\\sin((2i+1) t)'+lat_sum);
+                }
+            }
+            return sumdata(dv);        	
+        }
+    	
+        
+        // react on Radio click
+        $("[name=funktion]").change(function() { 
+            //alert('Selected: '+$('input[name=funktion]:checked').val());
+            //alert('Selected: '+$('input[name=funktion]:checked').attr("id"));
+            var fname=$('input[name=funktion]:checked').attr("id");
+            tangle.setValue("funktionsname", fname);
+            tangle.setValue("funktionsdef", $('input[name=funktion]:checked').val());
+            var d0=genfunktion(fname);
+            m_chart.series[0].setData(d0);
+            m_chart.series[0].name=fname;
+           
+         });
+        
+        
+        var element = document.getElementById("sin");
+
+        var tangle = new Tangle(element, {
+           initialize: function () {
+                
+                this.t1 = 2;
+                this.t0 = -2;
+                this.punkte = 125;
+                
+                this.oldns =4;
+                this.ns = 4;
+                this.funktionsname="Stufenfunktion";
+                this.funktionsdef="f(t) = 1/2 + t/T für −T/2 ≤ t ≤ 0 und f(t) = 1/2 − t/T für 0 ≤ t ≤ T/2";
+                
+            },
+            update: function () {
+                
+                var d0=genfunktion(this.funktionsname);
+                m_chart.series[0].setData(d0);
+                m_chart.series[0].name=this.funktionsname;
+                
+                var d1=gensumdata(this.funktionsname);
+                m_chart.series[1].setData(d1);
+                m_chart.series[1].name='f1(t)+f2(t)+...';
+                
+                m_chart.redraw();  
+                
+                // Summation
+                $('#summe').empty()
+                var list_sum =gensumoutput(this.ns).split("+");
+                out = '';
+                for(var i=0; i<list_sum.length; i++) {
+                    if (i>0){
+                      out += "+";
+                    }
+                    out += list_sum[i];
+                    if (((i+1)%8)==0){
+                      $('#summe').append(""+out+"<br>");
+                      out="";
+                    }
+                }
+                $('#summe').append(""+out+"<br>");
+                
+                this.oldns=this.ns;
+            }
+        });     
+     var fname=$('input[name=funktion]:checked').attr("id");
+     var d0=genfunktion(fname);
+     m_chart.series[0].setData(d0);
+     var d1=gensumdata(fname);
+     m_chart.series[1].setData(d1);
+     
+    });
+});
+</script>
+    
+</head>
+
+<body>
+
+    <h2>Fourierreihe</h2>
+
+ 	<form id=funktion>
+		<fieldset>					
+			<legend>Funktion</legend>
+			<ol>
+			<li>
+			  <input id="Stufenfunktion" name="funktion" type="radio" checked="checked" 
+			  value="f(t) = −1 in −T/2 ≤ t ≤ 0 und f(t) = +1 in 0 ≤ t ≤ T/2">
+			  <label for="stufe">Stufenfunktion</label>
+			</li>								
+			<li>
+			  <input id="Dreiecksfunktion" name="funktion" type="radio"
+			  value="f(t) = 1/2 + t/T für −T/2 ≤ t ≤ 0 und f(t) = 1/2 − t/T für 0 ≤ t ≤ T/2">
+			  <label for="dreieck">Dreiecksfunktion</label>
+			</li>
+			<li>
+			  <input id="Sägezahnfunktion" name="funktion" type="radio"
+			  value="f(t)=1-t/(2*Pi)+floor(t/(2*Pi))">
+			  <label for="saege">Sägezahnfunktion</label>
+			</li>
+			</ol>
+		</fieldset>
+     </form>
+
+    
+    <p id="sin">
+    Eine <span data-var="funktionsname"> </span> kann wie folgt definiert werden:<br>
+    <span data-var="funktionsdef"> </span> <br>
+    Der Bereich t0=<span data-var="t0" class="TKAdjustableNumber" data-step="0.5" data-min="-4" data-max="0"> </span>&pi; 
+    bis t1=<span data-var="t1" class="TKAdjustableNumber" data-step="0.5" data-min="0.5" data-max="4"> </span> &pi;
+    wird mit 
+    <span data-var="punkte" class="TKAdjustableNumber" data-step="25" data-min="20" data-max="400"> </span> Punkten 
+    berechnet. 
+    <br> Weitere Informationen zu Fourierreihen finden Sie unter 
+    <a href="http://docs.sfz-bw.de/phag/skripte/fourier.pdf">fourier.pdf</a>.
+    <br><br>
+    Eine Näherung der <span data-var="funktionsname"> </span> kann als Summe mit 
+    <span data-var="ns" class="TKAdjustableNumber"  data-min="1" data-max="100"> </span> 
+    Summanden approximiert werden:</p>
+    
+    <div class="box" id="box" style="visibility:hidden; min-width: 400px; height: 90px; margin: 0 ">
+        <div id="MathOutput" class="output">$${}$$</div>
+    </div>
+    
+    <!--
+    <br>
+    <div id="Summetext" style="visibility:hidden">
+    <b> 
+    &sum; <span id="summe"></span>
+    </b>
+    </div>
+    -->
+    
+    
+     
+    <div id="container" style="min-width: 400px; height: 600px; margin: 0 auto"></div>
+    
+
+</body>
+</html>
