@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Summe von drei Sinusfunktionen</title>
+
+    
+    <!-- Style -->
+    <link rel="stylesheet" href="js/TangleKit/TangleKit.css" type="text/css">
+
+    <!-- JS  Tangle-->
+    <script  src="js/Tangle.js"></script>
+    <script  src="js/TangleKit/mootools.js"></script>
+    <script  src="js/TangleKit/sprintf.js"></script>
+    <script  src="js/TangleKit/BVTouchable.js"></script>
+    <script  src="js/TangleKit/TangleKit.js"></script>
+    <!-- JS  JQuery-->
+    <script  src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+     <!-- JS  Highcharts-->
+    <script  src="js/highcharts.js"></script>
+    <script  src="js/modules/exporting.js"></script>
+    <script  src="js/dark_blue_hj_theme.js"></script>
+
+<!--<script src="http://code.highcharts.com/highcharts.js"></script>-->
+<!--<script src="http://code.highcharts.com/modules/exporting.js"></script>-->
+
+
+<!-- SINUS Example -->
+<script >
+
+$(function () {
+    var m_chart;
+    $(document).ready(function() {
+    
+    function gensindata(numpoints,xmin,xmax,amplitude,omega,phi) {
+    	// generate an array of data
+    	var data = [];
+        var l=numpoints;
+        for(var i=0; i<l; i++) {
+            x=xmin+i*1.0/l*(xmax-xmin);
+            y=amplitude*Math.sin(omega*x*Math.PI+phi);
+            data.push([x, y]);
+        }
+        return data;
+    }
+    
+    function genseries(){
+       var ser=[];
+       var l=3;
+       var w=[0.5,1,1.5,2.0,2.5,3.0,3.5,4,4.5,5];
+       for(var i=0; i<l; i++) {
+         var  d={};
+         d["name"]="f"+(i+1)+"(t)=Asin("+w[i]+"t+0)";
+         d["data"]=gensindata(125,0,4*Math.PI,2,w[i],0);
+         ser.push(d);
+       }
+       var  d={};
+       d["name"]="f1(t)+f2(t)+f3(t)";
+       d["data"]=gensindata(125,0,2*Math.PI,2,w[i],0);
+       ser.push(d);
+       
+       return ser;
+    
+    //   series: [{
+    //            name: ('A sin(wt+phi)'),
+    //            data: (gensindata(200,0,4*Math.PI,2,3,0))               
+    //        }]
+    
+    }
+    
+    function sumdata(v){
+       
+       for (var k=1; k<v.length; k++) {
+          for (var m=0; m<v[0].length; m++) {
+             v[0][m][1] += v[k][m][1]
+          }
+       }
+       return v[0]
+    
+    }
+    
+    
+    
+    
+    m_chart = new Highcharts.Chart({
+        chart: {
+                renderTo: 'container',
+                type: 'line',
+                marginRight: 150,
+                marginBottom: 80
+            },
+       title: {
+                text: 'Summe von drei Sinus Funktionen',
+                x: -20 //center
+            },
+       subtitle: {
+                text: 'Reactive Example',
+                x: -20
+            },
+        xAxis: {
+                title: {
+                    text: 'x [au]'
+                },
+                minPadding: 0.01,
+                maxPadding: 0.02,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       yAxis: {
+                title: {
+                    text: 'y [au]'
+                },
+                 minPadding: 0.01,
+                maxPadding: 0.05,
+                maxZoom: 1.0,
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+       tooltip: {
+                formatter: function() {
+                        return '<b>'+ this.series.name +'</b><br/>'+
+                        this.x +': '+ this.y ;
+                }
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'top',
+                x: -10,
+                y: 30,
+                borderWidth: 0
+            },
+        series: (genseries())
+
+        });
+        
+        
+        //Reactive Elements
+        var element = document.getElementById("sin");
+
+        var tangle = new Tangle(element, {
+           initialize: function () {
+                this.a1 = 1;
+                this.o1 = 0.5;
+                this.p1 = 0;
+                
+                this.a2 = 0.8;
+                this.o2 = 1;
+                this.p2 = 0;
+                
+                this.a3 = 1.2;
+                this.o3 = 1.5;
+                this.p3 = 0;
+                
+               
+                
+                this.t1 = 2;
+                this.t0 = 0;
+                this.punkte = 125;
+                
+            },
+            update: function () {
+                var d1=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a1,this.o1,this.p1);
+                var d2=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a2,this.o2,this.p2);
+                var d3=gensindata(this.punkte,this.t0*Math.PI,this.t1*Math.PI,this.a3,this.o3,this.p3);
+                
+                
+                m_chart.series[0].setData(d1);
+                m_chart.series[0].name='f1(t)= '+this.a1+'*sin('+this.o1+'t+'+this.p1+')';
+                 m_chart.series[1].setData(d2);
+                m_chart.series[1].name='f2(t)= '+this.a2+'*sin('+this.o2+'t+'+this.p2+')';
+                 m_chart.series[2].setData(d3);
+                m_chart.series[2].name='f3(t)= '+this.a3+'*sin('+this.o3+'t+'+this.p3+')';
+                
+                
+                 m_chart.series[3].setData(sumdata([d1,d2,d3]));
+                m_chart.series[3].name='f1+f2+f3';
+                m_chart.redraw();  
+            }
+        });     
+    });
+});
+</script>
+    
+</head>
+
+<body>
+
+    <p>Summe von drei Sinusfunktionen</p>
+
+    <p id="sin">
+    Verschiedene Sinusfunktionen der Form A sin(&omega;t+&phi;) werden summiert.
+    Der Bereich t0=<span data-var="t0" class="TKAdjustableNumber" data-step="0.5" data-min="-4" data-max="0"> </span>&pi; 
+    bis t1=<span data-var="t1" class="TKAdjustableNumber" data-step="0.5" data-min="0.5" data-max="4"> </span> &pi;
+    wird mit 
+    <span data-var="punkte" class="TKAdjustableNumber" data-step="25" data-min="20" data-max="400"> </span> Punkten 
+    berechnet. 
+    <br><br>
+    f1(t)=<span data-var="a1" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o1" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p1" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    <br>
+    f2(t)=<span data-var="a2" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o2" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p2" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    
+    <br>
+    f3(t)=<span data-var="a3" class="TKAdjustableNumber" data-step="0.1" data-min="0.1" data-max="15">  </span>
+    *sin(<span data-var="o3" class="TKAdjustableNumber" data-step="0.1"  data-min="0.5" data-max="15"> </span> 
+    t+
+    <span data-var="p3" class="TKAdjustableNumber" data-step="0.1"  data-min="-15" data-max="15"> </span>)
+    
+   
+    
+    </p>
+     
+    <div id="container" style="min-width: 400px; height: 600px; margin: 0 auto"></div>
+    
+
+</body>
+</html>

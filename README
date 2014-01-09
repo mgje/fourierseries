@@ -1,0 +1,15 @@
+Created by Martin Guggisberg on 6/4/12
+(c) 2012 Martin Guggisberg, MIT oben-source license
+
+
+Examples for  webtech lecture at the  University of Basel
+
+Experiments with reactive documents
+
+used technologies:
+
+- JQuery
+- Tangle from https://github.com/worrydream/Tangle/blob/master/Tangle.js
+- Highcharts
+
+
